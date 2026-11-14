@@ -1,12 +1,12 @@
 """HızlıOku ⚡ — Duolingo tarzı, kademeli hızlı okuma eğitimi (Streamlit)."""
 
-import json
 import math
 import random
 import re
 import time
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from content import LEVELS, PASSAGES
 
@@ -83,6 +83,36 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.lvl):hover {
         box-shadow: 0 0 40px rgba(124,92,255,.2) inset;}
 .hl {background: linear-gradient(90deg,#7C5CFF,#22D3EE); color: #fff; border-radius: 8px;
      padding: 1px 6px; font-weight: 700;}
+
+/* Sol panel */
+section[data-testid="stSidebar"] {background: linear-gradient(180deg, rgba(124,92,255,.14), rgba(34,211,238,.05));}
+.sb-card {border-radius: 20px; padding: .9rem 1rem; margin-bottom: .75rem;
+          background: rgba(124,92,255,.12); border: 1px solid rgba(124,92,255,.28);}
+.sb-head {display: flex; gap: .75rem; align-items: center; margin-bottom: .65rem;}
+.sb-emoji {font-size: 1.9rem; width: 52px; height: 52px; flex: 0 0 52px; border-radius: 16px;
+           display: flex; align-items: center; justify-content: center;
+           background: linear-gradient(135deg,#FFB86C,#FF7AC6);}
+.sb-title {font-weight: 800; font-size: 1.05rem;}
+.sb-sub {font-size: .8rem; opacity: .78;}
+.sb-bar {height: 10px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden;}
+.sb-bar > div {height: 100%; border-radius: 99px; background: linear-gradient(90deg,#FFB86C,#FF7AC6,#7C5CFF);}
+.sb-hint {font-size: .72rem; opacity: .65; margin-top: .35rem;}
+.sb-row {display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .75rem;}
+.sb-mini {border-radius: 18px; padding: .7rem .8rem; text-align: center;}
+.sb-mini .v {font-size: 1.2rem; font-weight: 800;}
+.sb-mini .l {font-size: .7rem; opacity: .8; text-transform: uppercase; letter-spacing: .06em;}
+.sb-mini.heart {background: linear-gradient(135deg, rgba(255,92,122,.28), rgba(255,122,198,.14));
+                border: 1px solid rgba(255,92,122,.38);}
+.sb-mini.fire {background: linear-gradient(135deg, rgba(255,184,108,.30), rgba(255,92,92,.14));
+               border: 1px solid rgba(255,184,108,.42);}
+.dots {display: flex; gap: .4rem; margin: .55rem 0 .2rem 0;}
+.dot {flex: 1; height: 10px; border-radius: 99px; background: rgba(255,255,255,.14);}
+.dot.done {background: linear-gradient(90deg,#10B981,#22D3EE);}
+.dot.now {background: #7C5CFF; box-shadow: 0 0 10px rgba(124,92,255,.8);}
+.sb-speed {font-size: 1.5rem; font-weight: 800; margin-top: .2rem;}
+.sb-speed small {font-size: .75rem; opacity: .7; font-weight: 600;}
+.sb-tip {background: linear-gradient(135deg, rgba(34,211,238,.16), rgba(124,92,255,.14));
+         border-color: rgba(34,211,238,.35);}
 </style>
 """
 
@@ -106,7 +136,6 @@ def init_state():
         "wpm_result": None,
         "last_quiz": None,
         "attempt": 0,
-        "loaded_sig": None,
     }
     for k, v in defaults.items():
         st.session_state.setdefault(k, v)
@@ -149,51 +178,118 @@ def go_map():
 
 
 # ----------------------------------------------------------------------------
-# Kenar çubuk: istatistikler + ilerleme kaydet/yükle
+# Sol panel: saat, rütbe, can, seri, yolculuk
 # ----------------------------------------------------------------------------
+CLOCK_HTML = """
+<div style="font-family:Inter,system-ui,sans-serif;text-align:center;padding:14px 8px;border-radius:22px;
+background:linear-gradient(135deg,#FF7AC6 0%,#7C5CFF 55%,#22D3EE 100%);color:#fff;
+box-shadow:0 8px 24px rgba(124,92,255,.35)">
+  <div id="g" style="font-size:.8rem;opacity:.95;font-weight:600"></div>
+  <div id="t" style="font-size:2.1rem;font-weight:800;letter-spacing:2px;line-height:1.25"></div>
+  <div id="d" style="font-size:.78rem;opacity:.95"></div>
+</div>
+<script>
+function tick(){
+  const n=new Date(), h=n.getHours();
+  const g = h<5 ? 'İyi geceler 🌙' : h<12 ? 'Günaydın ☀️' : h<18 ? 'İyi günler 🌤️' : 'İyi akşamlar 🌆';
+  document.getElementById('g').textContent=g;
+  document.getElementById('t').textContent=n.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('d').textContent=n.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
+}
+tick(); setInterval(tick,1000);
+</script>
+<style>body{margin:0;background:transparent}</style>
+"""
+
+RANKS = [
+    (1, "Çaylak Okur", "🐣"),
+    (2, "Meraklı Okur", "📖"),
+    (3, "Hızlı Gözler", "👀"),
+    (4, "Okuma Ninjası", "🥷"),
+    (6, "Işık Hızı", "⚡"),
+]
+
+TIPS = [
+    "Gözlerini rahat bırak: gerginlik hızı düşürür.",
+    "Başlığa ve ilk cümleye göz at, konuyu önceden tahmin et.",
+    "Geri dönme isteğine direnmek hızın en büyük sırrı.",
+    "Her gün 10 dakika düzenli pratik, haftada bir saatten iyidir.",
+    "Kelimeleri tek tek değil, öbek öbek yakalamaya çalış.",
+    "Okurken parmağınla ritim tutmak iç sesi azaltır.",
+    "İyi uyku, iyi anlamanın yarısıdır.",
+    "Hız kadar anlama da önemli: ikisini birlikte ölç.",
+]
+
+
+def rank_for(level):
+    name, emoji = RANKS[0][1], RANKS[0][2]
+    for min_lvl, n, e in RANKS:
+        if level >= min_lvl:
+            name, emoji = n, e
+    return name, emoji
+
+
 def sidebar():
     s = st.session_state
-    with st.sidebar:
-        st.markdown("## ⚡ HızlıOku")
-        level = 1 + s.xp // XP_PER_LEVEL
-        st.markdown(f"**Seviye {level}** · {s.xp} XP")
-        st.progress((s.xp % XP_PER_LEVEL) / XP_PER_LEVEL)
-        st.markdown(f"{'❤️' * s.hearts}{'🖤' * (MAX_HEARTS - s.hearts)}")
-        c1, c2 = st.columns(2)
-        c1.metric("🔥 Seri", s.streak)
-        c2.metric("✅ Kademe", f"{len(set(s.completed))}/{len(LEVELS)}")
-        if s.baseline_wpm:
-            st.metric("📏 Başlangıç (etkili)", f"{s.baseline_wpm} k/dk")
-        if s.final_wpm:
-            st.metric("🏆 Final (etkili)", f"{s.final_wpm} k/dk")
+    done = set(s.completed)
+    total = len(LEVELS)
+    next_idx = next((i for i, l in enumerate(LEVELS) if l["id"] not in done), total)
+    level = 1 + s.xp // XP_PER_LEVEL
+    into = s.xp % XP_PER_LEVEL
+    rank, rank_emoji = rank_for(level)
 
-        st.divider()
-        st.caption("İlerlemeni kaydet ve sonra devam et:")
-        data = {
-            "xp": s.xp,
-            "streak": s.streak,
-            "completed": s.completed,
-            "baseline_wpm": s.baseline_wpm,
-            "final_wpm": s.final_wpm,
-        }
-        st.download_button("💾 İlerlemeyi indir", json.dumps(data, ensure_ascii=False),
-                           file_name="hizliokuma_ilerleme.json", mime="application/json",
-                           use_container_width=True)
-        up = st.file_uploader("📂 İlerlemeyi yükle", type="json")
-        if up is not None:
-            sig = f"{up.name}-{up.size}"
-            if s.loaded_sig != sig:
-                try:
-                    d = json.load(up)
-                    s.xp = int(d.get("xp", 0))
-                    s.streak = int(d.get("streak", 0))
-                    s.completed = list(d.get("completed", []))
-                    s.baseline_wpm = d.get("baseline_wpm")
-                    s.final_wpm = d.get("final_wpm")
-                    s.loaded_sig = sig
-                    st.rerun()
-                except Exception:
-                    st.error("Dosya okunamadı.")
+    dots = "".join(
+        f"<span class='dot {'done' if l['id'] in done else ('now' if i == next_idx else '')}'></span>"
+        for i, l in enumerate(LEVELS)
+    )
+    tip = TIPS[int(time.time() // 86400) % len(TIPS)]
+
+    with st.sidebar:
+        components.html(CLOCK_HTML, height=112)
+
+        st.markdown(
+            "<div class='sb-card'>"
+            "<div class='sb-head'>"
+            f"<div class='sb-emoji'>{rank_emoji}</div>"
+            f"<div><div class='sb-title'>{rank}</div>"
+            f"<div class='sb-sub'>Seviye {level} · {s.xp} XP</div></div></div>"
+            f"<div class='sb-bar'><div style='width:{into}%'></div></div>"
+            f"<div class='sb-hint'>Sonraki seviyeye {XP_PER_LEVEL - into} XP kaldı</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "<div class='sb-row'>"
+            f"<div class='sb-mini heart'><div class='v'>❤️ {s.hearts}/{MAX_HEARTS}</div><div class='l'>Can</div></div>"
+            f"<div class='sb-mini fire'><div class='v'>🔥 {s.streak}</div><div class='l'>Seri</div></div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            "<div class='sb-card'>"
+            f"<div class='sb-sub'>🗺️ Yolculuk · {len(done)}/{total} kademe</div>"
+            f"<div class='dots'>{dots}</div></div>",
+            unsafe_allow_html=True,
+        )
+
+        if s.baseline_wpm:
+            final_txt = s.final_wpm if s.final_wpm else "?"
+            st.markdown(
+                "<div class='sb-card'>"
+                "<div class='sb-sub'>⚡ Etkili okuma hızın</div>"
+                f"<div class='sb-speed'>{s.baseline_wpm} → {final_txt} <small>kelime/dk</small></div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            "<div class='sb-card sb-tip'>"
+            "<div class='sb-sub'>💡 Günün ipucu</div>"
+            f"<div style='margin-top:.25rem;font-size:.9rem'>{tip}</div></div>",
+            unsafe_allow_html=True,
+        )
 
 
 # ----------------------------------------------------------------------------
