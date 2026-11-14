@@ -115,6 +115,69 @@ section[data-testid="stSidebar"] {background: linear-gradient(180deg, rgba(124,9
 .sb-speed small {font-size: .75rem; opacity: .7; font-weight: 600;}
 .sb-tip {background: linear-gradient(135deg, rgba(34,211,238,.16), rgba(124,92,255,.14));
          border-color: rgba(34,211,238,.35);}
+
+/* Oyun haritası: gece denizi ve adalar */
+.st-key-world {position: relative; border-radius: 28px; padding: 1.2rem .8rem 1.6rem; margin-top: .6rem;
+    overflow: hidden; gap: .3rem !important; color: #E8EAF6;
+    border: 1px solid rgba(124,92,255,.35); box-shadow: 0 16px 50px rgba(0,0,0,.35);
+    background:
+      radial-gradient(circle at 12% 6%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 2px),
+      radial-gradient(circle at 78% 11%, rgba(255,255,255,.7) 0, rgba(255,255,255,0) 2px),
+      radial-gradient(circle at 40% 22%, rgba(255,255,255,.8) 0, rgba(255,255,255,0) 1.5px),
+      radial-gradient(circle at 90% 38%, rgba(255,255,255,.6) 0, rgba(255,255,255,0) 2px),
+      radial-gradient(circle at 18% 52%, rgba(255,255,255,.7) 0, rgba(255,255,255,0) 1.5px),
+      radial-gradient(circle at 66% 70%, rgba(255,255,255,.8) 0, rgba(255,255,255,0) 2px),
+      radial-gradient(circle at 30% 88%, rgba(255,255,255,.6) 0, rgba(255,255,255,0) 1.5px),
+      linear-gradient(180deg, #1b1440 0%, #14224f 45%, #0b4a6e 100%);}
+.st-key-world p, .st-key-world span {color: #E8EAF6;}
+.st-key-world [data-testid="stVerticalBlock"] {gap: .25rem !important;}
+.st-key-world [data-testid="stHorizontalBlock"] {flex-wrap: nowrap !important; gap: .25rem !important;}
+.st-key-world [data-testid="stColumn"], .st-key-world [data-testid="column"] {
+    min-width: 0 !important; flex: 1 1 0 !important; width: auto !important;}
+
+.start-tag {text-align: center; font-weight: 700; font-size: .78rem; letter-spacing: .12em; opacity: .85;}
+.path {display: block; width: 100%; height: 56px;}
+.path path {stroke-width: 6; stroke-linecap: round; vector-effect: non-scaling-stroke;}
+.p-done {stroke: #34D399; filter: drop-shadow(0 0 6px rgba(52,211,153,.75));}
+.p-active {stroke: #FFD166; stroke-dasharray: 1 14; animation: dash 1s linear infinite;}
+.p-idle {stroke: rgba(255,255,255,.25); stroke-dasharray: 1 14;}
+@keyframes dash {to {stroke-dashoffset: -30;}}
+@keyframes bob {0%, 100% {transform: translateY(0);} 50% {transform: translateY(-7px);}}
+@keyframes pulse {
+    0% {box-shadow: 0 8px 0 #4C3BB5, 0 0 0 0 rgba(124,92,255,.6);}
+    70% {box-shadow: 0 8px 0 #4C3BB5, 0 0 0 22px rgba(124,92,255,0);}
+    100% {box-shadow: 0 8px 0 #4C3BB5, 0 0 0 0 rgba(124,92,255,0);}}
+
+.deco {text-align: center; font-size: 2rem; opacity: .85; padding-top: 1.6rem; animation: bob 3s ease-in-out infinite;}
+.avatar {text-align: center; font-size: 2.2rem; line-height: 1; animation: bob 1.4s ease-in-out infinite;}
+.avatar span {display: block; width: fit-content; margin: .2rem auto 0; padding: .1rem .6rem; border-radius: 99px;
+    font-size: .68rem; font-weight: 700; background: #fff; color: #2d2a5c !important;}
+.nl {text-align: center; margin-top: .45rem; line-height: 1.25;}
+.nl.lock {opacity: .5;}
+.nl .nk {display: block; font-size: .64rem; font-weight: 700; letter-spacing: .1em; opacity: .65;}
+.nl .nt {display: block; font-size: .9rem; font-weight: 700;}
+.nl .np {display: inline-block; margin-top: .25rem; font-size: .64rem; font-weight: 700; padding: .1rem .5rem;
+    border-radius: 99px; background: rgba(255,184,108,.22); color: #FFB86C !important;}
+
+/* Ada düğmeleri */
+div[class*="st-key-node_"] {display: flex; justify-content: center;}
+div[class*="st-key-node_"] .stButton {width: 100%; display: flex; justify-content: center;}
+div[class*="st-key-node_"] button {position: relative; width: 88px; height: 88px; min-height: 88px; padding: 0;
+    border-radius: 50% !important; border: none !important; color: #fff !important;
+    transition: transform .12s ease;}
+div[class*="st-key-node_"] button p {font-size: 2.3rem; line-height: 1; margin: 0;}
+div[class*="st-key-node_"] button:not(:disabled):hover {transform: translateY(-3px);}
+div[class*="st-key-node_"] button:not(:disabled):active {transform: translateY(5px);}
+div[class*="st-key-node_done_"] button {background: linear-gradient(145deg,#34D399,#10B981) !important;
+    box-shadow: 0 8px 0 #0B7A58, 0 16px 24px rgba(16,185,129,.35) !important;}
+div[class*="st-key-node_done_"] button::after {content: "✓"; position: absolute; top: -2px; right: -2px;
+    width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #10B981; font-weight: 800;
+    font-size: .95rem; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.35);}
+div[class*="st-key-node_cur_"] button {background: linear-gradient(145deg,#A78BFA,#7C5CFF 55%,#22D3EE) !important;
+    box-shadow: 0 8px 0 #4C3BB5; animation: pulse 1.8s infinite;}
+div[class*="st-key-node_lock_"] button {background: #3A3F5C !important; box-shadow: 0 8px 0 #262A40 !important;
+    filter: grayscale(.6); opacity: .85;}
 </style>
 """
 
@@ -363,6 +426,25 @@ def sidebar():
 # ----------------------------------------------------------------------------
 # Harita (kademe listesi)
 # ----------------------------------------------------------------------------
+NODE_PATTERN = [0, 1, 2, 1]          # adaların zikzak konumu: sol, orta, sağ, orta...
+DECOS = ["🌴", "🐚", "⛵", "🐋", "🪸", "🦀", "🏝️"]
+XPOS = {0: 50, 1: 150, 2: 250}       # sütun merkezleri (300 birimlik görünüm kutusunda)
+
+
+def node_pos(i):
+    return NODE_PATTERN[i % len(NODE_PATTERN)]
+
+
+def path_svg(p1, p2, state):
+    """İki ada arasındaki yol. state: done (yeşil), active (altın, hareketli), idle (soluk)."""
+    x1, x2 = XPOS[p1], XPOS[p2]
+    d = f"M{x1} 0 C{x1} 34 {x2} 22 {x2} 56"
+    return (
+        "<svg class='path' viewBox='0 0 300 56' preserveAspectRatio='none'>"
+        f"<path d='{d}' class='p-{state}' fill='none'/></svg>"
+    )
+
+
 def map_view():
     s = st.session_state
     done = set(s.completed)
@@ -373,9 +455,9 @@ def map_view():
 
     st.markdown(
         "<div class='hero'><h1>⚡ HızlıOku</h1>"
-        "<p>Adım adım hızlı okuma. Her kademeyi geç, bir sonrakinin kilidini aç.</p>"
+        "<p>Adadan adaya atla! Her kademeyi geç, bir sonraki adanın kilidini aç.</p>"
         f"<div class='track'><div style='width:{pct}%'></div></div>"
-        f"<div class='hero-meta'><span>{len(done)}/{total} kademe</span><span>%{pct}</span></div></div>",
+        f"<div class='hero-meta'><span>{len(done)}/{total} ada</span><span>%{pct}</span></div></div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -388,7 +470,7 @@ def map_view():
     )
 
     if next_idx == total:
-        st.success("🎉 Tüm kademeleri tamamladın! İstediğin kademeyi tekrar oynayabilirsin.")
+        st.success("🎉 Tüm adaları gezdin! İstediğin adaya tekrar uğrayabilirsin.")
         if s.baseline_wpm and s.final_wpm:
             st.metric("Etkili okuma hızın", f"{s.final_wpm} kelime/dk",
                       delta=f"{s.final_wpm - s.baseline_wpm:+d} (başlangıca göre)")
@@ -402,30 +484,46 @@ def map_view():
                      type="primary", use_container_width=True, key="resume_main"):
             start_level(resume_idx)
 
-    chips = {"done": "Tamamlandı", "locked": "Kilitli", "next": "Sıradaki"}
-    for i, lvl in enumerate(LEVELS):
-        is_done = lvl["id"] in done
-        locked = i > next_idx
-        state = "done" if is_done else ("locked" if locked else "next")
-        icon = "🔒" if locked else lvl["emoji"]
-        lock_cls = " is-locked" if locked else ""
-        entry = s.level_progress.get(lvl["id"])
-        chip_text = "Devam ediyor" if entry else chips[state]
-        with st.container(border=True):
-            c1, c2 = st.columns([7, 3], vertical_alignment="center")
-            c1.markdown(
-                f"<div class='lvl{lock_cls}'>"
-                f"<div class='bubble {state}'>{icon}</div>"
-                "<div><div class='lvl-top'>"
-                f"<span class='lvl-no'>KADEME {i + 1}</span><span class='chip {state}'>{chip_text}</span></div>"
-                f"<div class='lvl-title'>{lvl['title']}</div>"
-                f"<div class='lvl-sum'>{lvl['summary']}</div></div></div>",
-                unsafe_allow_html=True,
-            )
-            label = "Devam et" if entry else ("Tekrar" if is_done else "Başla")
-            if c2.button(label, key=f"start_{lvl['id']}", disabled=locked,
-                         use_container_width=True, type="primary" if i == next_idx else "secondary"):
-                start_level(i)
+    try:
+        world = st.container(key="world")
+    except TypeError:          # eski Streamlit sürümü
+        world = st.container()
+
+    avatar_idx = min(next_idx, total - 1)
+    with world:
+        st.markdown("<div class='start-tag'>⛵ YOLCULUK BAŞLIYOR</div>", unsafe_allow_html=True)
+        for i, lvl in enumerate(LEVELS):
+            p = node_pos(i)
+            is_done = lvl["id"] in done
+            locked = i > next_idx
+            state = "done" if is_done else ("lock" if locked else "cur")
+            entry = s.level_progress.get(lvl["id"])
+            tip = lvl["summary"].replace("'", "&#39;")
+
+            cols = st.columns(3)
+            empty = [c for c in range(3) if c != p]
+            with cols[empty[i % 2]]:
+                st.markdown(f"<div class='deco'>{DECOS[i % len(DECOS)]}</div>", unsafe_allow_html=True)
+            with cols[p]:
+                if i == avatar_idx:
+                    tag = "Tebrikler!" if next_idx == total else "Buradasın!"
+                    st.markdown(f"<div class='avatar'>🦉<span>{tag}</span></div>", unsafe_allow_html=True)
+                icon = "🔒" if locked else lvl["emoji"]
+                if st.button(icon, key=f"node_{state}_{lvl['id']}", disabled=locked):
+                    start_level(i)
+                prog = "<span class='np'>Devam ediyor</span>" if entry else ""
+                st.markdown(
+                    f"<div class='nl {state}' title='{tip}'><span class='nk'>KADEME {i + 1}</span>"
+                    f"<span class='nt'>{lvl['title']}</span>{prog}</div>",
+                    unsafe_allow_html=True,
+                )
+
+            if i < total - 1:
+                if is_done:
+                    seg = "active" if i + 1 == next_idx else "done"
+                else:
+                    seg = "idle"
+                st.markdown(path_svg(p, node_pos(i + 1), seg), unsafe_allow_html=True)
 
     st.caption("⚠️ Not: Hız tek başına anlam taşımaz. Skorun, anlama oranınla çarpılarak hesaplanır.")
 
