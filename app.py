@@ -1,5 +1,7 @@
 """HızlıOku ⚡ — Duolingo tarzı, kademeli hızlı okuma eğitimi (Streamlit)."""
 
+import base64
+import json
 import math
 import random
 import re
@@ -136,6 +138,8 @@ def init_state():
         "wpm_result": None,
         "last_quiz": None,
         "attempt": 0,
+        "level_progress": {},
+        "restored": False,
     }
     for k, v in defaults.items():
         st.session_state.setdefault(k, v)
@@ -164,17 +168,81 @@ def reset_level_state():
 
 
 def start_level(idx):
+    """Kademeyi aç. Yarım kalmış ilerleme varsa kaldığı aşamadan devam eder."""
     s = st.session_state
+    entry = s.level_progress.get(LEVELS[idx]["id"])
     s.view = "level"
     s.level_idx = idx
     s.attempt = 0
     reset_level_state()
+    if entry:
+        s.stage = entry["stage"]
+        s.wpm_result = entry.get("wpm")
+        s.attempt = entry.get("attempt", 0)
+        if s.stage == "quiz" and s.wpm_result is None:
+            s.stage = "exercise"
     st.rerun()
 
 
 def go_map():
     st.session_state.view = "map"
     st.rerun()
+
+
+def track_progress():
+    """Açık kademenin hangi aşamada olduğunu kaydeder (haritaya dönünce devam edilebilsin)."""
+    s = st.session_state
+    if s.view != "level" or s.level_idx is None:
+        return
+    lid = LEVELS[s.level_idx]["id"]
+    if s.stage in ("exercise", "quiz"):
+        s.level_progress[lid] = {"stage": s.stage, "wpm": s.wpm_result, "attempt": s.attempt}
+    elif s.stage == "result":
+        if (s.last_quiz or {}).get("passed"):
+            s.level_progress.pop(lid, None)
+        else:
+            s.level_progress[lid] = {"stage": "exercise", "wpm": None, "attempt": s.attempt + 1}
+    else:
+        s.level_progress.pop(lid, None)
+
+
+def save_progress():
+    """İlerlemeyi adres çubuğuna yazar (sayfa yenilenince kaybolmasın)."""
+    s = st.session_state
+    data = {
+        "xp": s.xp, "streak": s.streak, "hearts": s.hearts, "completed": s.completed,
+        "baseline_wpm": s.baseline_wpm, "final_wpm": s.final_wpm, "level_progress": s.level_progress,
+    }
+    raw = json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    code = base64.urlsafe_b64encode(raw).decode().rstrip("=")
+    if st.query_params.get("p") != code:
+        st.query_params["p"] = code
+
+
+def load_progress():
+    """Adres çubuğundaki ilerleme kodunu (varsa) bir kez geri yükler."""
+    s = st.session_state
+    if s.restored:
+        return
+    s.restored = True
+    code = st.query_params.get("p")
+    if not code:
+        return
+    try:
+        d = json.loads(base64.urlsafe_b64decode(code + "=" * (-len(code) % 4)).decode("utf-8"))
+        ids = {l["id"] for l in LEVELS}
+        s.xp = max(0, int(d.get("xp", 0)))
+        s.streak = max(0, int(d.get("streak", 0)))
+        s.hearts = clamp(int(d.get("hearts", MAX_HEARTS)), 0, MAX_HEARTS)
+        s.completed = [x for x in d.get("completed", []) if x in ids]
+        s.baseline_wpm = d.get("baseline_wpm")
+        s.final_wpm = d.get("final_wpm")
+        s.level_progress = {
+            k: v for k, v in d.get("level_progress", {}).items()
+            if k in ids and isinstance(v, dict) and v.get("stage") in ("exercise", "quiz")
+        }
+    except Exception:
+        pass
 
 
 # ----------------------------------------------------------------------------
@@ -325,6 +393,15 @@ def map_view():
             st.metric("Etkili okuma hızın", f"{s.final_wpm} kelime/dk",
                       delta=f"{s.final_wpm - s.baseline_wpm:+d} (başlangıca göre)")
 
+    resume_idx = next((i for i, l in enumerate(LEVELS) if l["id"] in s.level_progress), None)
+    if resume_idx is None and next_idx < total and (s.completed or s.xp > 0):
+        resume_idx = next_idx
+    if resume_idx is not None:
+        rl = LEVELS[resume_idx]
+        if st.button(f"▶️ Kaldığın yerden devam et · Kademe {resume_idx + 1}: {rl['title']}",
+                     type="primary", use_container_width=True, key="resume_main"):
+            start_level(resume_idx)
+
     chips = {"done": "Tamamlandı", "locked": "Kilitli", "next": "Sıradaki"}
     for i, lvl in enumerate(LEVELS):
         is_done = lvl["id"] in done
@@ -332,18 +409,20 @@ def map_view():
         state = "done" if is_done else ("locked" if locked else "next")
         icon = "🔒" if locked else lvl["emoji"]
         lock_cls = " is-locked" if locked else ""
+        entry = s.level_progress.get(lvl["id"])
+        chip_text = "Devam ediyor" if entry else chips[state]
         with st.container(border=True):
             c1, c2 = st.columns([7, 3], vertical_alignment="center")
             c1.markdown(
                 f"<div class='lvl{lock_cls}'>"
                 f"<div class='bubble {state}'>{icon}</div>"
                 "<div><div class='lvl-top'>"
-                f"<span class='lvl-no'>KADEME {i + 1}</span><span class='chip {state}'>{chips[state]}</span></div>"
+                f"<span class='lvl-no'>KADEME {i + 1}</span><span class='chip {state}'>{chip_text}</span></div>"
                 f"<div class='lvl-title'>{lvl['title']}</div>"
                 f"<div class='lvl-sum'>{lvl['summary']}</div></div></div>",
                 unsafe_allow_html=True,
             )
-            label = "Tekrar" if is_done else "Başla"
+            label = "Devam et" if entry else ("Tekrar" if is_done else "Başla")
             if c2.button(label, key=f"start_{lvl['id']}", disabled=locked,
                          use_container_width=True, type="primary" if i == next_idx else "secondary"):
                 start_level(i)
@@ -620,12 +699,15 @@ def level_view():
 
 def main():
     init_state()
+    load_progress()
     st.markdown(CSS, unsafe_allow_html=True)
     sidebar()
     if st.session_state.view == "map":
         map_view()
     else:
         level_view()
+    track_progress()
+    save_progress()
 
 
 main()
