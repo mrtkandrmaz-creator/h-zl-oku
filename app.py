@@ -20,17 +20,69 @@ st.set_page_config(page_title="HızlıOku • Hızlı Okuma Akademisi", page_ico
 
 CSS = """
 <style>
-.hero {background: linear-gradient(135deg,#6C5CE7 0%,#00B894 100%); padding: 1.6rem 1rem;
-       border-radius: 20px; color: white; text-align: center; margin-bottom: 1.2rem;}
-.hero h1 {margin: 0; color: white; font-size: 2.2rem;}
-.hero p {margin: .3rem 0 0 0; opacity: .95;}
-.node {font-size: 2.4rem; text-align: center; line-height: 1.2;}
-.reader {font-size: 1.15rem; line-height: 1.9; padding: 1.2rem 1.4rem; border-radius: 14px;
-         background: rgba(128,128,128,.10);}
-.flash {font-size: 2.2rem; font-weight: 700; text-align: center; padding: 3rem 1rem;
-        border-radius: 16px; background: rgba(108,92,231,.12); min-height: 8rem;}
-.hl {background: #FDCB6E; color: #2d3436; border-radius: 6px; padding: 0 4px; font-weight: 600;}
-.small-muted {opacity: .7; font-size: .9rem;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+html, body, [class*="css"] {font-family: 'Inter', sans-serif;}
+
+/* Üst başlık */
+.hero {background: linear-gradient(135deg,#7C5CFF 0%,#22D3EE 100%); padding: 1.8rem 1.4rem;
+       border-radius: 24px; color: #fff; margin-bottom: 1rem;
+       box-shadow: 0 12px 40px rgba(124,92,255,.35);}
+.hero h1 {margin: 0; color: #fff; font-size: 2.1rem; font-weight: 800; letter-spacing: -.5px;}
+.hero p {margin: .4rem 0 1rem 0; opacity: .95;}
+.track {height: 10px; border-radius: 99px; background: rgba(255,255,255,.28); overflow: hidden;}
+.track > div {height: 100%; border-radius: 99px; background: #fff;}
+.hero-meta {display: flex; justify-content: space-between; font-size: .85rem; margin-top: .45rem; opacity: .95;}
+
+/* İstatistik kartları */
+.stats {display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.1rem;}
+.stat {border-radius: 18px; padding: .9rem 1rem; background: rgba(124,92,255,.10);
+       border: 1px solid rgba(124,92,255,.25);}
+.stat .v {font-size: 1.3rem; font-weight: 800;}
+.stat .l {font-size: .74rem; opacity: .7; text-transform: uppercase; letter-spacing: .06em;}
+
+/* Kart (border=True container) */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 20px; border: 1px solid rgba(124,92,255,.22);
+    background: rgba(124,92,255,.06); transition: transform .15s ease, box-shadow .15s ease;}
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.lvl):hover {
+    transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124,92,255,.22);}
+
+/* Kademe kartı */
+.lvl {display: flex; gap: .9rem; align-items: center;}
+.lvl.is-locked {opacity: .55;}
+.bubble {width: 56px; height: 56px; flex: 0 0 56px; border-radius: 18px; display: flex;
+         align-items: center; justify-content: center; font-size: 1.7rem;
+         background: linear-gradient(135deg,#7C5CFF,#22D3EE); box-shadow: 0 6px 16px rgba(124,92,255,.35);}
+.bubble.done {background: linear-gradient(135deg,#10B981,#22D3EE);}
+.bubble.locked {background: rgba(128,128,128,.25); box-shadow: none; filter: grayscale(1);}
+.lvl-top {display: flex; align-items: center; gap: .5rem; margin-bottom: .15rem;}
+.lvl-no {font-size: .72rem; font-weight: 700; letter-spacing: .08em; opacity: .6;}
+.chip {font-size: .68rem; font-weight: 700; padding: .12rem .55rem; border-radius: 99px;}
+.chip.next {background: rgba(124,92,255,.22); color: #A99BFF;}
+.chip.done {background: rgba(16,185,129,.2); color: #34D399;}
+.chip.locked {background: rgba(128,128,128,.2);}
+.lvl-title {font-size: 1.08rem; font-weight: 700;}
+.lvl-sum {font-size: .88rem; opacity: .72;}
+
+/* Butonlar */
+.stButton > button, .stDownloadButton > button {border-radius: 14px; font-weight: 600;
+    border: 1px solid rgba(124,92,255,.35); transition: all .15s ease;}
+.stButton > button[kind="primary"], .stButton > button[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(135deg,#7C5CFF,#22D3EE); border: none; color: #fff;
+    box-shadow: 0 6px 18px rgba(124,92,255,.35);}
+.stButton > button[kind="primary"]:hover, .stButton > button[data-testid="stBaseButton-primary"]:hover {
+    filter: brightness(1.08); transform: translateY(-1px);}
+
+/* Okuma alanları */
+.reader {font-size: 1.15rem; line-height: 1.9; padding: 1.3rem 1.5rem; border-radius: 18px;
+         background: rgba(124,92,255,.07); border: 1px solid rgba(124,92,255,.2);
+         border-left: 5px solid #7C5CFF;}
+.flash {font-size: 2.3rem; font-weight: 800; text-align: center; padding: 3.2rem 1rem;
+        border-radius: 22px; min-height: 8rem; border: 1px solid rgba(124,92,255,.3);
+        background: linear-gradient(135deg, rgba(124,92,255,.18), rgba(34,211,238,.14));
+        box-shadow: 0 0 40px rgba(124,92,255,.2) inset;}
+.hl {background: linear-gradient(90deg,#7C5CFF,#22D3EE); color: #fff; border-radius: 8px;
+     padding: 1px 6px; font-weight: 700;}
 </style>
 """
 
@@ -149,32 +201,55 @@ def sidebar():
 # ----------------------------------------------------------------------------
 def map_view():
     s = st.session_state
+    done = set(s.completed)
+    total = len(LEVELS)
+    pct = int(len(done) / total * 100)
+    level = 1 + s.xp // XP_PER_LEVEL
+    next_idx = next((i for i, l in enumerate(LEVELS) if l["id"] not in done), total)
+
     st.markdown(
         "<div class='hero'><h1>⚡ HızlıOku</h1>"
-        "<p>Adım adım hızlı okuma — her kademeyi geç, bir sonrakinin kilidini aç!</p></div>",
+        "<p>Adım adım hızlı okuma. Her kademeyi geç, bir sonrakinin kilidini aç.</p>"
+        f"<div class='track'><div style='width:{pct}%'></div></div>"
+        f"<div class='hero-meta'><span>{len(done)}/{total} kademe</span><span>%{pct}</span></div></div>",
         unsafe_allow_html=True,
     )
-    done = set(s.completed)
-    next_idx = next((i for i, l in enumerate(LEVELS) if l["id"] not in done), len(LEVELS))
+    st.markdown(
+        "<div class='stats'>"
+        f"<div class='stat'><div class='v'>Sv. {level}</div><div class='l'>{s.xp} XP</div></div>"
+        f"<div class='stat'><div class='v'>❤️ {s.hearts}/{MAX_HEARTS}</div><div class='l'>Can</div></div>"
+        f"<div class='stat'><div class='v'>🔥 {s.streak}</div><div class='l'>Seri</div></div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
-    if next_idx == len(LEVELS):
-        st.success("🎉 Tüm kademeleri tamamladın! Aşağıdan istediğin kademeyi tekrar oynayabilirsin.")
+    if next_idx == total:
+        st.success("🎉 Tüm kademeleri tamamladın! İstediğin kademeyi tekrar oynayabilirsin.")
         if s.baseline_wpm and s.final_wpm:
             st.metric("Etkili okuma hızın", f"{s.final_wpm} kelime/dk",
                       delta=f"{s.final_wpm - s.baseline_wpm:+d} (başlangıca göre)")
 
+    chips = {"done": "Tamamlandı", "locked": "Kilitli", "next": "Sıradaki"}
     for i, lvl in enumerate(LEVELS):
+        is_done = lvl["id"] in done
         locked = i > next_idx
+        state = "done" if is_done else ("locked" if locked else "next")
+        icon = "🔒" if locked else lvl["emoji"]
+        lock_cls = " is-locked" if locked else ""
         with st.container(border=True):
-            c1, c2, c3 = st.columns([1, 6, 3])
-            icon = "🔒" if locked else lvl["emoji"]
-            c1.markdown(f"<div class='node'>{icon}</div>", unsafe_allow_html=True)
-            badge = " ✅" if lvl["id"] in done else ""
-            c2.markdown(f"**Kademe {i + 1} · {lvl['title']}**{badge}  \n{lvl['summary']}")
-            label = "Tekrar" if lvl["id"] in done else "Başla"
-            primary = (i == next_idx)
-            if c3.button(label, key=f"start_{lvl['id']}", disabled=locked,
-                         use_container_width=True, type="primary" if primary else "secondary"):
+            c1, c2 = st.columns([7, 3], vertical_alignment="center")
+            c1.markdown(
+                f"<div class='lvl{lock_cls}'>"
+                f"<div class='bubble {state}'>{icon}</div>"
+                "<div><div class='lvl-top'>"
+                f"<span class='lvl-no'>KADEME {i + 1}</span><span class='chip {state}'>{chips[state]}</span></div>"
+                f"<div class='lvl-title'>{lvl['title']}</div>"
+                f"<div class='lvl-sum'>{lvl['summary']}</div></div></div>",
+                unsafe_allow_html=True,
+            )
+            label = "Tekrar" if is_done else "Başla"
+            if c2.button(label, key=f"start_{lvl['id']}", disabled=locked,
+                         use_container_width=True, type="primary" if i == next_idx else "secondary"):
                 start_level(i)
 
     st.caption("⚠️ Not: Hız tek başına anlam taşımaz. Skorun, anlama oranınla çarpılarak hesaplanır.")
@@ -434,7 +509,8 @@ def level_view():
         return
 
     if s.stage == "lesson":
-        st.markdown(lvl["lesson"])
+        with st.container(border=True):
+            st.markdown(lvl["lesson"])
         if st.button("Egzersize geç →", type="primary"):
             s.stage = "exercise"
             st.rerun()
